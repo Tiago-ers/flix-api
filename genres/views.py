@@ -13,9 +13,17 @@ def genre_create_list_view(request):
         return JsonResponse(data, safe=False)
     elif request.method == "POST":
         data = json.loads(request.body.decode("utf-8"))
-        new_genre = Genre(name=data["name"])
-        new_genre.save()
-        return JsonResponse({"id": new_genre.id, "name": new_genre.name}, status=201)
+        genre_exists = Genre.objects.all().filter(name__icontains=data["name"])
+        print(genre_exists)
+
+        if genre_exists:
+            return JsonResponse({"message": "Gênero já está cadastrado"}, status=200)
+        else:
+            new_genre = Genre(name=data["name"])
+            new_genre.save()
+            return JsonResponse(
+                {"id": new_genre.id, "name": new_genre.name}, status=201
+            )
 
 
 @csrf_exempt
@@ -30,3 +38,6 @@ def genre_detail_view(request, pk):
         genre.name = data["name"]
         genre.save()
         return JsonResponse({"id": genre.id, "name": genre.name}, status=200)
+    elif request.method == "DELETE":
+        genre.delete()
+        return JsonResponse({"message": "Gênero excluído com sucesso."}, status=204)
